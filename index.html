@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Value Finder</title>
+<meta name="description" content="Open a photo and read the value of any spot, 0 to 10, with the paint mix to match. A free art tool.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Value Finder · unwakingart">
+<meta property="og:description" content="Open a photo and read the value of any spot, 0 to 10, with the paint mix to match. A free art tool.">
+<meta property="og:image" content="https://unwakingart.github.io/value-finder/preview.jpg">
+<meta property="og:url" content="https://unwakingart.github.io/value-finder/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&family=DM+Mono:wght@400&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<style>
+
+:root { --sx-w: 1300px; --ivory: #F1EBDD; --paper: #FBF8F1; --ink: #292B26; --soft: #5F615A; --line: rgba(41,43,38,.22); --edge: rgba(41,43,38,.28); --accent: #D9603F; --cobalt: #2F55D4; --sage: #D9E2D5; --coral: #E9B9A7; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--ivory); }
+body { font: 400 15px/1.5 Figtree, system-ui, sans-serif; color: var(--ink); background: var(--ivory) url(paper.jpg) 0 0 / 900px repeat; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.mono { font: 400 11.5px 'DM Mono', monospace; letter-spacing: .16em; text-transform: uppercase; }
+.wordmark { font: 800 23px/1 Figtree, sans-serif; letter-spacing: -.045em; position: relative; text-decoration: none; white-space: nowrap; }
+.wordmark .i { position: relative; }
+.wordmark svg { position: absolute; left: 50%; top: .08em; width: .36em; transform: translateX(-50%); }
+header.intro { max-width: 1300px; margin: 0 auto; padding: 26px 16px 6px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; }
+.tape { display: inline-block; white-space: nowrap; background: var(--sage); padding: 5px 12px 4px; transform: rotate(-1.5deg); }
+h1 { font: 400 46px/1.05 Newsreader, Georgia, serif; margin-top: 12px; letter-spacing: -.01em; }
+.sub { font-size: 17px; color: #3b3d37; margin-top: 10px; max-width: 520px; }
+.sub mark { background: linear-gradient(transparent 62%, rgba(233,185,167,.95) 62%); color: inherit; padding: 0 2px; }
+.privacy { font-size: 13px; color: var(--soft); margin-top: 10px; }
+header.intro img.collage { width: min(360px, 34vw); height: auto; display: block; }
+header.intro > div { min-width: 0; }
+@media (max-width: 700px) { .tape .more { display: none; } header.intro { grid-template-columns: 1fr 120px; gap: 10px; } h1 { font-size: 36px; } .sub { font-size: 15.5px; } header.intro img.collage { width: 120px; } }
+@media (min-width: 1000px) { h1 { font-size: 60px; } }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; max-width: 1300px; margin: 0 auto; padding: 16px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+.card { background: var(--paper); border-radius: 4px; padding: 16px; box-shadow: 0 1px 0 rgba(41,43,38,.06), 0 12px 26px -20px rgba(41,43,38,.6); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+button, .btn, select { font-family: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink); background: transparent; border: 1.5px solid var(--ink); border-radius: 999px; padding: 6px 13px; cursor: pointer; line-height: 1.3; }
+.btn { background: var(--ink); color: var(--ivory); font-weight: 600; padding: 7px 16px; }
+button:hover, select:hover { background: rgba(41,43,38,.06); } .btn:hover { background: #3d4039; }
+button.on { background: var(--ink); color: var(--ivory); border-color: var(--ink); }
+select { appearance: none; -webkit-appearance: none; padding-right: 28px; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23292B26' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 11px center / 10px 6px; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; background: rgba(41,43,38,.07); border-radius: 999px; }
+.seg button { border-color: transparent; }
+.seg button.on { border-color: var(--ink); }
+label.small { font-size: 13px; color: var(--soft); display: inline-flex; align-items: center; gap: 6px; }
+input[type=range] { accent-color: var(--ink); width: 90px; }
+#stage { position: relative; background: #fff; border: 1.5px dashed var(--edge); border-radius: 4px; min-height: 360px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
+#stage.has { min-height: 0; }   
+#stage.drag { border-color: var(--cobalt); background: #EEF1FB; }
+#empty { text-align: center; color: var(--soft); padding: 40px 16px; font-size: 15px; line-height: 1.6; }
+#empty b { color: var(--ink); }
+canvas#view { display: none; max-width: 100%; cursor: crosshair; } canvas#view.panning { cursor: grabbing; }
+.hint { font-size: 13px; color: var(--soft); margin-top: 10px; line-height: 1.55; }
+h2 { font: 400 11.5px 'DM Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--soft); margin-bottom: 12px; }
+.side { display: flex; flex-direction: column; gap: 16px; }
+.none { font-size: 13px; color: var(--soft); }
+.sw { border-radius: 4px; border: 1px solid var(--edge); background: #eee; }
+.swlabel { font-size: 11px; color: var(--soft); text-align: center; margin-top: 3px; }
+.color-read { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 4px; } .color-read div { border-top: 1px dashed var(--line); padding-top: 8px; } .color-read span { display: block; font-size: 11px; color: var(--soft); } .color-read b { font-weight: 600; font-size: 14px; }
+.val { font: 400 40px/1 Newsreader, serif; } .val small { font: 400 12.5px Figtree, sans-serif; color: var(--soft); display: block; margin-top: 4px; }
+.mixbox { border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; } .mixbox:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+.mixhead { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; }
+.mixhead span { font-weight: 400; font-size: 12px; color: var(--soft); }
+.mixsw { display: flex; gap: 6px; align-items: center; margin: 8px 0 6px; font-size: 12px; color: var(--soft); }
+.mixsw .c { width: 44px; height: 30px; border-radius: 4px; border: 1px solid var(--edge); }
+.parts { list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 3px; }
+.parts li { display: flex; align-items: center; gap: 7px; } .parts b { width: 22px; text-align: right; }
+.dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--edge); flex: 0 0 auto; }
+details.paints { margin-top: 12px; font-size: 13px; } details.paints summary { cursor: pointer; font-weight: 600; text-decoration: underline; text-decoration-color: var(--coral); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+#extras label { display: flex; align-items: center; gap: 7px; padding: 2px 0; }
+#extras input, .pin input[type=checkbox] { accent-color: var(--ink); }
+footer { margin-top: 50px; background: var(--ink); color: var(--ivory); padding: 40px 20px 44px; text-align: center; }
+footer .wordmark { font-size: 34px; display: inline-block; }
+footer .mono { color: #d9d3c4; margin-top: 10px; text-transform: none; }
+footer p { margin: 18px auto 0; max-width: 640px; font-size: 13px; color: #d9d3c4; line-height: 1.6; }
+.readout { display: grid; grid-template-columns: 64px 64px 1fr; gap: 10px; align-items: center; }
+.sw { width: 64px; height: 64px; }
+.scalewrap { display: grid; grid-template-columns: 34px 1fr; gap: 8px; margin-top: 16px; }
+.scale { display: flex; flex-direction: column; border: 1px solid var(--edge); border-radius: 4px; overflow: hidden; height: 330px; }
+.scale div { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.marks { position: relative; height: 330px; }
+.mark { position: absolute; left: 0; transform: translateY(-50%); font-size: 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.mark.live { font-weight: 700; color: var(--accent); }
+.mark i { display: inline-block; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid currentColor; }
+.pins { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow: auto; }
+.pin { display: grid; grid-template-columns: 22px 26px 26px 1fr 34px 26px; gap: 6px; align-items: center; font-size: 13px; }
+.pin .n { font-weight: 700; text-align: center; }
+.pin .c { width: 26px; height: 20px; border-radius: 4px; border: 1px solid var(--edge); }
+.pin input { font-family: inherit; font-size: 13px; border: none; border-bottom: 1px dashed var(--line); background: transparent; color: var(--ink); width: 100%; padding: 2px 0; }
+.pin .v { text-align: right; font-weight: 700; }
+.pin button { padding: 0 7px; font-size: 14px; line-height: 20px; }
+.row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+</style>
+<style id="site-menu">
+  
+  .sx-site { position: sticky; top: 0; z-index: 50; background: rgba(241,235,221,.94); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-bottom: 1px solid rgba(41,43,38,.12); font-family: Figtree, system-ui, sans-serif; color: #292B26; }
+  .sx-row { max-width: var(--sx-w, 1080px); margin: 0 auto; padding: 0 20px; height: 62px; display: flex; align-items: center; gap: 28px; }
+  .sx-wm { font: 800 26px/1 Figtree, sans-serif; letter-spacing: -.045em; position: relative; text-decoration: none; color: inherit; margin-right: auto; transition: opacity .2s; }
+  .sx-wm .i { position: relative; } .sx-wm svg { position: absolute; left: 50%; top: .08em; width: .36em; transform: translateX(-50%); color: #EF7A56; }
+  .sx-nav { display: flex; gap: 26px; font: 500 15px Figtree, sans-serif; }
+  .sx-nav a { text-decoration: none; padding: 3px 0; border-bottom: 2px solid transparent; color: inherit; white-space: nowrap; }
+  .sx-nav a:hover { border-bottom-color: rgba(41,43,38,.3); }
+  .sx-n { font: italic 400 14px Newsreader, Georgia, serif; color: #5F615A; margin-right: 6px; }
+  .sx-nav a.on { border-bottom-color: #E9B9A7; font-weight: 600; }
+  .sx-soc { display: flex; gap: 12px; } .sx-soc a { color: inherit; display: flex; }
+  .sx-menu { display: none; align-items: center; gap: 8px; font: 600 14px Figtree, sans-serif; border: 1.5px solid #292B26; border-radius: 999px; padding: 8px 14px; background: transparent; color: inherit; cursor: pointer; }
+  .sx-menu i { display: block; width: 14px; height: 9px; border-top: 1.6px solid; border-bottom: 1.6px solid; position: relative; }
+  .sx-menu i::after { content: ""; position: absolute; left: 0; right: 0; top: 2.2px; border-top: 1.6px solid; }
+  .sx-cta { display: inline-flex; background: #292B26; color: #F1EBDD; text-decoration: none; font: 600 14px Figtree, sans-serif; padding: 10px 18px; border-radius: 999px; white-space: nowrap; }
+  .sx-sub { border-top: 1px dashed rgba(41,43,38,.18); }
+  .sx-sub .sx-row { height: 42px; gap: 22px; font: 400 12px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; overflow-x: auto; scrollbar-width: none; }
+  .sx-sub .sx-row::-webkit-scrollbar { display: none; }
+  .sx-sub b { font-weight: 400; color: #5F615A; white-space: nowrap; }
+  .sx-sub nav { display: flex; gap: 22px; }
+  .sx-sub a { text-decoration: none; color: inherit; white-space: nowrap; padding: 4px 9px; margin: 0 -9px; }
+  .sx-sub a.on { background: #D9E2D5; }
+  .sx-sub .sx-tool { display: inline-flex; align-items: center; gap: 7px; } .sx-sub .sx-tool img { width: 18px; height: 18px; }
+  .sx-sheet { display: none; position: fixed; inset: 0; z-index: 60; background: #F1EBDD; padding: 0 20px 30px; overflow: auto; font-family: Figtree, system-ui, sans-serif; color: #292B26; }
+  .sx-sheet .sx-row { padding: 0; }
+  .sx-close { margin-left: auto; font: 600 14px Figtree, sans-serif; border: 1.5px solid #292B26; border-radius: 999px; padding: 8px 14px; background: transparent; color: inherit; cursor: pointer; }
+  .sx-way { display: block; text-decoration: none; color: inherit; padding: 20px 0 18px; border-bottom: 1px dashed rgba(41,43,38,.25); }
+  .sx-way .sx-n { display: inline-flex; width: 30px; height: 30px; border: 1.5px solid; border-radius: 50%; align-items: center; justify-content: center; font-size: 15px; color: inherit; margin-right: 12px; vertical-align: 5px; }
+  .sx-way b { font: 400 34px/1.1 Newsreader, Georgia, serif; }
+  .sx-way small { display: block; font: 400 12px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: #5F615A; margin: 8px 0 0 42px; }
+  .sx-way.on b { background: linear-gradient(transparent 62%, rgba(233,185,167,.95) 62%); }
+  .sx-tools { margin: 6px 0 0 42px; display: grid; gap: 4px; }
+  .sx-tools a { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; font: 500 17px Figtree, sans-serif; padding: 6px 0; } .sx-tools img { width: 26px; height: 26px; }
+  .sx-follow { margin-top: 26px; display: flex; gap: 10px; } .sx-follow a { display: inline-flex; gap: 8px; align-items: center; border: 1.5px solid #292B26; border-radius: 999px; padding: 10px 16px; text-decoration: none; color: inherit; font: 600 14px Figtree, sans-serif; }
+  .sx-art { display: block; width: 78%; max-width: 420px; margin: 34px auto 0; height: auto; }
+  html.sx-open { overflow: hidden; } html.sx-open .sx-sheet { display: block; }
+  .sx-watch .sx-site .sx-wm { opacity: 0; pointer-events: none; } .sx-watch.sx-past .sx-site .sx-wm { opacity: 1; pointer-events: auto; }
+  .sx-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px 30px; max-width: 760px; margin: 28px auto 0; text-align: left; font-family: Figtree, system-ui, sans-serif; }
+  .sx-map h4 { margin: 0 0 8px; font: 400 11px 'DM Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: #bdb6a6; }
+  .sx-map a { display: block; color: #F1EBDD; text-decoration: none; font-size: 15px; padding: 3px 0; } .sx-map a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 760px) { .sx-nav, .sx-soc, .sx-sub b { display: none; } .sx-menu { display: inline-flex; } .sx-row { gap: 10px; } .sx-wm { font-size: 24px; } }
+</style>
+</head>
+<body>
+
+<header class="sx-site"><div class="sx-row">
+  <a class="sx-wm" href="https://unwakingart.github.io/" data-site aria-label="unwakingart, home">unwak<span class="i">ı<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 C10.8 6.5 13.5 9.2 20 10 C13.5 10.8 10.8 13.5 10 20 C9.2 13.5 6.5 10.8 0 10 C6.5 9.2 9.2 6.5 10 0Z" fill="currentColor"/></svg></span>ngart</a>
+  <nav class="sx-nav" aria-label="unwakingart"><a href="https://unwakingart.github.io/hangouts/" data-site><span class="sx-n">01</span>Creative hangouts</a><a href="https://unwakingart.github.io/trips/" data-site><span class="sx-n">02</span>Study trips</a><a href="https://unwakingart.github.io/value-finder/" data-site class="on"><span class="sx-n">03</span>Free tools</a></nav>
+  <div class="sx-soc"><a href="https://www.instagram.com/unwakingart/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg></a><a href="https://www.tiktok.com/@unwakingart" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.3 1.9 3.8 4.2 4v3.1c-1.6 0-3-.5-4.2-1.3v6.4c0 3.4-2.6 5.8-5.8 5.8S5 18.6 5 15.3c0-3.3 2.8-5.9 6.2-5.6v3.2c-1.6-.3-3 .8-3 2.4 0 1.4 1.1 2.5 2.6 2.5 1.5 0 2.6-1.1 2.6-2.6V3h3.2Z"/></svg></a></div>
+  <button class="sx-menu" type="button" aria-expanded="false" aria-controls="sx-sheet"><i></i>Menu</button>
+</div><div class="sx-sub"><div class="sx-row"><b>Free art tools</b><nav aria-label="Art tools"><a class="sx-tool on" href="https://unwakingart.github.io/value-finder/" data-site aria-current="page"><img src="https://unwakingart.github.io/value-finder/icon.png" width="18" height="18" alt="">Value Finder</a><a class="sx-tool" href="https://unwakingart.github.io/face-planes/" data-site><img src="https://unwakingart.github.io/face-planes/icon.png" width="18" height="18" alt="">Face Planes</a><a class="sx-tool" href="https://unwakingart.github.io/drawing-notebook/" data-site><img src="https://unwakingart.github.io/drawing-notebook/icon.png" width="18" height="18" alt="">Drawing notebook</a></nav></div></div></header>
+<div class="sx-sheet" id="sx-sheet" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="sx-row"><a class="sx-wm" href="https://unwakingart.github.io/" data-site aria-label="unwakingart, home">unwak<span class="i">ı<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 C10.8 6.5 13.5 9.2 20 10 C13.5 10.8 10.8 13.5 10 20 C9.2 13.5 6.5 10.8 0 10 C6.5 9.2 9.2 6.5 10 0Z" fill="currentColor"/></svg></span>ngart</a><button class="sx-close" type="button">Close ✕</button></div>
+  <a class="sx-way" href="https://unwakingart.github.io/hangouts/" data-site><span class="sx-n">01</span><b>Creative hangouts</b><small>Makati · at a café</small></a>
+  <a class="sx-way" href="https://unwakingart.github.io/trips/" data-site><span class="sx-n">02</span><b>Art study trips</b><small>Hanoi · March 2027</small></a>
+  <div class="sx-way on"><span class="sx-n">03</span><b>Free art tools</b><div class="sx-tools"><a href="https://unwakingart.github.io/value-finder/" data-site><img src="https://unwakingart.github.io/value-finder/icon.png" width="26" height="26" alt="">Value Finder</a><a href="https://unwakingart.github.io/face-planes/" data-site><img src="https://unwakingart.github.io/face-planes/icon.png" width="26" height="26" alt="">Face Planes</a><a href="https://unwakingart.github.io/drawing-notebook/" data-site><img src="https://unwakingart.github.io/drawing-notebook/icon.png" width="26" height="26" alt="">Drawing notebook</a></div></div>
+  <div class="sx-follow"><a href="https://www.instagram.com/unwakingart/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg> Instagram</a><a href="https://www.tiktok.com/@unwakingart" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.3 1.9 3.8 4.2 4v3.1c-1.6 0-3-.5-4.2-1.3v6.4c0 3.4-2.6 5.8-5.8 5.8S5 18.6 5 15.3c0-3.3 2.8-5.9 6.2-5.6v3.2c-1.6-.3-3 .8-3 2.4 0 1.4 1.1 2.5 2.6 2.5 1.5 0 2.6-1.1 2.6-2.6V3h3.2Z"/></svg> TikTok</a></div>
+  <img class="sx-art" src="https://unwakingart.github.io/images/collage-face.webp" width="860" height="460" alt="" loading="lazy">
+</div>
+<script>
+(function () {
+  var h = document.documentElement, b = document.querySelector('.sx-menu'), s = document.getElementById('sx-sheet');
+  function set(open) { h.classList.toggle('sx-open', open); b.setAttribute('aria-expanded', open); if (open) s.querySelector('.sx-close').focus(); else b.focus(); }
+  b.addEventListener('click', function () { set(true); });
+  s.querySelector('.sx-close').addEventListener('click', function () { set(false); });
+  s.addEventListener('click', function (e) { if (e.target.closest('a[href*="#"]')) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (!h.classList.contains('sx-open')) return;
+    if (e.key === 'Escape') set(false);
+    if (e.key === 'Tab') {
+      var f = s.querySelectorAll('a[href], button'), first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+    }
+  });
+  var wide = window.matchMedia('(min-width: 761px)');
+  function shut() { if (wide.matches && h.classList.contains('sx-open')) { h.classList.remove('sx-open'); b.setAttribute('aria-expanded', false); } }
+  if (wide.addEventListener) wide.addEventListener('change', shut); else wide.addListener(shut);
+
+  function watch() {
+    var big = document.querySelector('.sx-home .top .wordmark');
+    if (big && 'IntersectionObserver' in window) { document.body.classList.add('sx-watch'); new IntersectionObserver(function (es) { document.body.classList.toggle('sx-past', !es[0].isIntersecting); }).observe(big); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+})();
+</script>
+
+<header class="intro">
+  <div>
+    <span class="mono tape">Art tools<span class="more"> · Look a little closer</span></span>
+    <h1>Value Finder</h1>
+    <p class="sub">How light or dark is it? Move the ring over any part of a photo to <mark>read its value</mark>, then see how to mix it.</p>
+    <p class="privacy">Free to use. Your photo stays on your device: nothing is uploaded.</p>
+  </div>
+  <img class="collage" src="collage.webp" width="1000" height="733" alt="A collage: a pencil-shaded eye torn from an old drawing-course print, over a torn gray scale and blue watercolor, with a coral star">
+</header>
+<main>
+  <section class="card">
+    <div class="toolbar">
+      <label class="btn">Open a photo<input type="file" id="file" accept="image/*" hidden></label>
+      <span class="seg" id="views">
+        <button data-view="color" class="on">Color</button>
+        <button data-view="bw">Black and white</button>
+        <button data-view="steps">Value steps</button>
+        <button data-view="temp">Warm and cool</button>
+        <button data-view="chroma">Color strength</button>
+      </span>
+      <select id="steps" title="How many value steps">
+        <option value="3">3 steps</option>
+        <option value="5" selected>5 steps</option>
+        <option value="11">11 steps</option>
+      </select>
+      <button id="rulerBtn">Gray ruler</button>
+      <button id="turn" title="Turn the ruler" style="display:none">Turn</button>
+      <label class="small">Ring <input type="range" id="ring" min="2" max="40" value="10"></label>
+    </div>
+    <div id="stage">
+      <div id="empty"><b>Open a photo</b>, drop one here, or paste it (Ctrl or ⌘ + V).<br>Your photo stays on your computer: nothing is uploaded.</div>
+      <canvas id="view"></canvas>
+    </div>
+    <p class="hint">Gray ruler: drag it over the photo and find the hole where the photo and the gray around it look equally light. Squint if it helps.<br>Hover to read a spot. Click to pin it, drag a pin to move it, and name your pins in the list. A bigger ring averages out small details like ripples or texture.<br>Warm and cool: warm colors turn orange, cool colors blue, neutral ones stay gray. Color strength: dull colors turn gray and strong colors keep their color.</p>
+  </section>
+  <aside class="side">
+    <div class="card">
+      <h2>Under the ring</h2>
+      <div class="readout">
+        <div><div class="sw" id="swC"></div><div class="swlabel">color</div></div>
+        <div><div class="sw" id="swG"></div><div class="swlabel">its value</div></div>
+        <div class="val" id="val">–<small>0 black · 10 white</small></div>
+      </div>
+      <div class="color-read" id="colorRead"><div><span>Warm or cool</span><b id="tempR">–</b></div><div><span>Color strength</span><b id="chromaR">–</b></div></div>
+      <div class="scalewrap">
+        <div class="scale" id="scale"></div>
+        <div class="marks" id="marks"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>How to mix it</h2>
+      <div id="mixes"><div class="none">Hover over the photo or click a pin.</div></div>
+      <details class="paints"><summary>Your paints</summary>
+        <div class="none" style="margin:6px 0">White, yellow ochre, vermilion and ivory black are always in. Tick the other paints you have:</div>
+        <div id="extras"></div>
+      </details>
+      <div class="none" style="margin-top:8px">Recipes are estimates from screen colors, in parts by volume. Your easel has the final say: test a dab and adjust.</div>
+    </div>
+    <div class="card">
+      <h2>Pins</h2>
+      <div class="pins" id="pins"><div class="none">No pins yet. Click the photo to add one.</div></div>
+      <div class="row">
+        <button id="save">Save the map</button>
+        <button id="clear">Clear pins</button>
+      </div>
+    </div>
+  </aside>
+</main>
+<footer>
+  <a class="wordmark" href="https://unwakingart.github.io/" data-site aria-label="unwakingart">unwak<span class="i">ı<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 C10.8 6.5 13.5 9.2 20 10 C13.5 10.8 10.8 13.5 10 20 C9.2 13.5 6.5 10.8 0 10 C6.5 9.2 9.2 6.5 10 0Z" fill="currentColor"/></svg></span>ngart</a>
+  <div class="mono">a little outside the lines</div>
+  <p>Values use the painters' 0–10 scale (0 black, 10 white), the same as the unwakingart value sheets. Collage: eye study from a 19th-century drawing course, Rijksmuseum (public domain).</p>
+  <div class="sx-map"><div><h4>Creative hangouts</h4><a href="https://unwakingart.github.io/hangouts/" data-site>The hangout</a><a href="https://unwakingart.github.io/hangouts/#tickets" data-site>Dates &amp; fee</a></div><div><h4>Art study trips</h4><a href="https://unwakingart.github.io/trips/" data-site>Oil Painting in Hanoi</a><a href="https://unwakingart.github.io/trips/#payment" data-site>How to apply</a></div><div><h4>Free art tools</h4><a href="https://unwakingart.github.io/value-finder/" data-site>Value Finder</a><a href="https://unwakingart.github.io/face-planes/" data-site>Face Planes</a><a href="https://unwakingart.github.io/drawing-notebook/" data-site>Drawing notebook</a></div><div><h4>About</h4><a href="https://unwakingart.github.io/michelle/" data-site>My art journey</a></div><div><h4>Follow</h4><a href="https://www.instagram.com/unwakingart/" target="_blank" rel="noopener">Instagram</a><a href="https://www.tiktok.com/@unwakingart" target="_blank" rel="noopener">TikTok</a></div></div>
+  <p>@unwakingart on <a href="https://www.instagram.com/unwakingart/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.tiktok.com/@unwakingart" target="_blank" rel="noopener">TikTok</a></p>
+</footer>
+<script>
+const $ = s => document.querySelector(s);
+const view = $('#view'), ctx = view.getContext('2d'), stage = $('#stage');
+let img = null, W = 0, H = 0, rgb = null, lum = null, I = null;
+let ruler = null, rulerDrag = null, mode = 'color', nSteps = 5, ring = 10, pins = [], live = null, dragging = null, scaleK = 1;
+const layers = {};
+
+const toV = L => L / 25.5;
+const gray = L => `rgb(${L|0},${L|0},${L|0})`;
+const stepGray = (L, n) => {
+  if (n === 11) return Math.round(L / 25.5) * 25.5;
+  const k = Math.min(n - 1, Math.floor(L / 256 * n));
+  return (k + .5) * 256 / n;
+};
+
+const scale = $('#scale');
+for (let v = 10; v >= 0; v--) {
+  const d = document.createElement('div'), L = v * 25.5;
+  d.style.background = gray(L); d.style.color = v > 5 ? '#292B26' : '#FBF8F1'; d.textContent = v; scale.appendChild(d);
+}
+
+function load(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file), im = new Image();
+  im.onload = () => { setup(im); URL.revokeObjectURL(url); };
+  im.src = url;
+}
+function setup(im) {
+  const max = 1600, k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+  W = Math.round(im.naturalWidth * k); H = Math.round(im.naturalHeight * k);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const cx = c.getContext('2d'); cx.drawImage(im, 0, 0, W, H);
+  const data = cx.getImageData(0, 0, W, H).data;
+  rgb = data; lum = new Float32Array(W * H);
+
+  I = [0, 1, 2, 3].map(() => new Float64Array((W + 1) * (H + 1)));
+  for (let y = 0; y < H; y++) {
+    const s = [0, 0, 0, 0];
+    for (let x = 0; x < W; x++) {
+      const p = (y * W + x) * 4, r = data[p], g = data[p + 1], b = data[p + 2], L = .299 * r + .587 * g + .114 * b;
+      lum[y * W + x] = L; s[0] += r; s[1] += g; s[2] += b; s[3] += L;
+      const q = (y + 1) * (W + 1) + x + 1;
+      for (let k = 0; k < 4; k++) I[k][q] = I[k][q - W - 1] + s[k];
+    }
+  }
+  layers.color = c; Object.keys(layers).forEach(k => { if (k !== 'color') delete layers[k]; });
+  img = im; pins = []; live = null; ruler = null; $('#rulerBtn').classList.remove('on'); $('#turn').style.display = 'none';
+  $('#empty').style.display = 'none'; view.style.display = 'block'; stage.classList.add('has');
+  fit(); renderPins(); draw();
+}
+function layer(name) {
+  if (name === 'color') return layers.color;
+  const key = name === 'steps' ? 'steps' + nSteps : name === 'bw' ? 'bw' : name;
+  if (layers[key]) return layers[key];
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const cx = c.getContext('2d'), out = cx.createImageData(W, H), o = out.data;
+  if (name === 'temp' || name === 'chroma') { colorLayer(name, o); cx.putImageData(out, 0, 0); return layers[key] = c; }
+  for (let i = 0; i < W * H; i++) {
+    const L = name === 'steps' ? stepGray(lum[i], nSteps) : lum[i];
+    o[i * 4] = o[i * 4 + 1] = o[i * 4 + 2] = L; o[i * 4 + 3] = 255;
+  }
+  cx.putImageData(out, 0, 0); return layers[key] = c;
+}
+function fit() {
+  if (!img) return;
+  const maxW = stage.clientWidth - 2, maxH = Math.max(360, window.innerHeight - 162 - (document.querySelector('.sx-site') || { offsetHeight: 58 }).offsetHeight);
+  scaleK = Math.min(maxW / W, maxH / H);
+  const dpr = window.devicePixelRatio || 1;
+  view.style.width = W * scaleK + 'px'; view.style.height = H * scaleK + 'px';
+  view.width = Math.round(W * scaleK * dpr); view.height = Math.round(H * scaleK * dpr);
+  ctx.setTransform(view.width / W, 0, 0, view.height / H, 0, 0);
+}
+function sample(x, y) {
+  const r = ring / scaleK;
+  const x0 = Math.max(0, Math.round(x - r)), x1 = Math.min(W, Math.round(x + r) + 1);
+  const y0 = Math.max(0, Math.round(y - r)), y1 = Math.min(H, Math.round(y + r) + 1);
+  const n = Math.max(1, (x1 - x0) * (y1 - y0));
+  const S = k => (I[k][y1 * (W + 1) + x1] - I[k][y0 * (W + 1) + x1] - I[k][y1 * (W + 1) + x0] + I[k][y0 * (W + 1) + x0]) / n;
+  return { r: S(0), g: S(1), b: S(2), L: S(3) };
+}
+function draw() {
+  if (!img) return;
+  ctx.clearRect(0, 0, W, H); ctx.drawImage(layer(mode), 0, 0);
+  const u = 1 / scaleK, r = ring * u;
+  pins.forEach((p, i) => {
+    ctx.lineWidth = 3 * u; ctx.strokeStyle = '#FBF8F1'; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.stroke();
+    ctx.lineWidth = 1.5 * u; ctx.strokeStyle = '#292B26'; ctx.stroke();
+    const t = `${i + 1}`, fs = 13 * u; ctx.font = `bold ${fs}px Figtree, sans-serif`;
+    const tx = p.x + r + 4 * u, ty = p.y - r - 2 * u, tw = ctx.measureText(t + ' · ' + Math.round(toV(p.s.L))).width;
+    ctx.fillStyle = 'rgba(251,248,241,.92)'; ctx.fillRect(tx - 3 * u, ty - fs, tw + 6 * u, fs + 6 * u);
+    ctx.fillStyle = '#292B26'; ctx.fillText(t + ' · ' + Math.round(toV(p.s.L)), tx, ty);
+  });
+  if (ruler) drawRuler();
+  if (live && !dragging && !rulerDrag) {
+    ctx.lineWidth = 2.5 * u; ctx.strokeStyle = '#FBF8F1'; ctx.beginPath(); ctx.arc(live.x, live.y, r, 0, 7); ctx.stroke();
+    ctx.lineWidth = 1.2 * u; ctx.strokeStyle = '#D9603F'; ctx.setLineDash([4 * u, 3 * u]); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
+const RC = 46, RH = 64, HOLE = 10;
+function rulerBox() {
+  const u = 1 / scaleK, a = RC * u, b = RH * u;
+  return ruler.v ? { w: b, h: a * 11 } : { w: a * 11, h: b };
+}
+function drawRuler() {
+  const u = 1 / scaleK, a = RC * u, b = RH * u, bx = rulerBox();
+  ctx.save(); ctx.shadowColor = 'rgba(60,40,20,.35)'; ctx.shadowBlur = 8 * u;
+  ctx.beginPath(); ctx.rect(ruler.x - 3 * u, ruler.y - 3 * u, bx.w + 6 * u, bx.h + 6 * u); ctx.rect(ruler.x, ruler.y, bx.w, bx.h);
+  ctx.fillStyle = '#FBF8F1'; ctx.fill('evenodd'); ctx.restore();
+  for (let k = 0; k <= 10; k++) {
+    const v = ruler.v ? 10 - k : k;
+    const x = ruler.v ? ruler.x : ruler.x + k * a, y = ruler.v ? ruler.y + k * a : ruler.y;
+    const w = ruler.v ? b : a, h = ruler.v ? a : b;
+    const cx = ruler.v ? x + b * .42 : x + a / 2, cy = ruler.v ? y + a / 2 : y + b * .42;
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.arc(cx, cy, HOLE * u, 0, Math.PI * 2, true);
+    ctx.fillStyle = gray(v * 25.5); ctx.fill('evenodd');
+    ctx.font = `${11 * u}px Figtree, sans-serif`; ctx.fillStyle = v > 5 ? '#292B26' : '#FBF8F1'; ctx.textAlign = 'center';
+    if (ruler.v) ctx.fillText(v, x + b * .84, cy + 4 * u); else ctx.fillText(v, cx, y + b - 6 * u);
+  }
+  ctx.textAlign = 'start';
+  ctx.lineWidth = 1.5 * u; ctx.strokeStyle = 'rgba(41,43,38,.5)'; ctx.strokeRect(ruler.x, ruler.y, bx.w, bx.h);
+}
+function onRuler(p) { if (!ruler) return false; const bx = rulerBox(); return p.x >= ruler.x && p.x <= ruler.x + bx.w && p.y >= ruler.y && p.y <= ruler.y + bx.h; }
+
+function show(s) {
+  if (!s) { $('#val').innerHTML = '–<small>0 black · 10 white</small>'; $('#tempR').textContent = $('#chromaR').textContent = '–'; return; }
+  const [, A, B] = toLab(s.r, s.g, s.b), w = warmth(A, B), C = Math.hypot(A, B);
+  $('#tempR').textContent = tempWord(w); $('#chromaR').textContent = `${Math.round(C)} · ${chromaWord(C)}`;
+  const v = toV(s.L);
+  $('#swC').style.background = `rgb(${s.r|0},${s.g|0},${s.b|0})`; $('#swG').style.background = gray(s.L);
+  $('#val').innerHTML = `${Math.round(v)}<small>${v.toFixed(1)} on 0–10</small>`;
+  marks(v); mixLater(s);
+}
+function marks(liveV) {
+  const m = $('#marks'); m.innerHTML = ''; const h = m.clientHeight;
+  const at = v => (1 - (v + .5) / 11) * h;
+  const list = pins.map((p, i) => ({ y: at(toV(p.s.L)), cls: 'mark', html: `<i></i>${i + 1}${p.name ? ' ' + esc(p.name) : ''}` }));
+  if (liveV != null) list.push({ y: at(liveV), cls: 'mark live', html: '<i></i>ring' });
+
+  list.sort((a, b) => a.y - b.y).forEach((o, k, all) => { if (k && o.y < all[k - 1].y + 15) o.y = all[k - 1].y + 15; });
+  list.forEach(o => { const d = document.createElement('div'); d.className = o.cls; d.style.top = o.y + 'px'; d.innerHTML = o.html; m.appendChild(d); });
+}
+
+function toLab(r, g, b) {
+  const lin = v => (v /= 255) <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+  const R = lin(r), G = lin(g), B = lin(b);
+  const f = t => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116;
+  const fx = f((.4124 * R + .3576 * G + .1805 * B) / .95047), fy = f(.2126 * R + .7152 * G + .0722 * B), fz = f((.0193 * R + .1192 * G + .9505 * B) / 1.08883);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+const warmth = (A, B) => .766 * A + .643 * B;
+const tempWord = w => Math.abs(w) < 1.5 ? 'neutral' : (Math.abs(w) < 6 ? 'a little ' : Math.abs(w) < 20 ? '' : 'very ') + (w > 0 ? 'warm' : 'cool');
+const chromaWord = C => C < 6 ? 'dull' : C < 15 ? 'muted' : C < 30 ? 'medium' : C < 50 ? 'strong' : 'very strong';
+function colorLayer(name, o) {
+  const warmC = [217, 96, 63], coolC = [47, 85, 212];
+  for (let i = 0; i < W * H; i++) {
+    const r = rgb[i * 4], g = rgb[i * 4 + 1], b = rgb[i * 4 + 2], [, A, B] = toLab(r, g, b), L = lum[i];
+    let out;
+    if (name === 'temp') {
+      const w = warmth(A, B), t = Math.min(1, Math.max(0, (Math.abs(w) - 1) / 14)) * .85, k = w > 0 ? warmC : coolC;
+      out = k.map(v => L * (1 - t) + v * (.35 + .65 * L / 255) * t);
+    } else {
+      const C = Math.hypot(A, B), t = Math.min(1, Math.max(0, (C - 12) / 25));
+      out = [r, g, b].map(v => L * (1 - t) + v * t);
+    }
+    o[i * 4] = out[0]; o[i * 4 + 1] = out[1]; o[i * 4 + 2] = out[2]; o[i * 4 + 3] = 255;
+  }
+}
+
+const ZORN = [
+  ['titanium white', [248, 246, 240], null],
+  ['yellow ochre', [196, 150, 60], [228, 205, 150]],
+  ['vermilion', [212, 52, 32], [236, 152, 132]],
+  ['ivory black', [26, 26, 30], [108, 110, 116]],
+];
+const EXTRAS = [
+  ['lamp black', [20, 20, 20], [72, 72, 74], true],
+  ['ultramarine blue', [32, 38, 112], [122, 138, 202], true],
+  ['cobalt blue', [30, 70, 170], [140, 165, 220], true],
+  ['cerulean blue', [40, 120, 180], [150, 195, 225], true],
+  ['phthalo blue', [12, 30, 90], [80, 130, 200], true],
+  ['phthalo green', [0, 70, 60], [80, 170, 150], true],
+  ['viridian', [20, 110, 90], [140, 195, 175], true],
+  ['sap green', [70, 100, 30], [165, 190, 130], true],
+  ['earth green', [104, 118, 84], [192, 202, 178], true],
+  ['lemon yellow', [244, 228, 46], [250, 244, 156], true],
+  ['cadmium yellow light', [250, 208, 10], [252, 234, 134], true],
+  ['cadmium yellow medium', [245, 180, 0], [250, 220, 120], true],
+  ['naples yellow', [240, 210, 140], [248, 232, 190], true],
+  ['cadmium orange', [235, 110, 20], [245, 175, 120], true],
+  ['cadmium red light', [226, 56, 32], [240, 154, 134], true],
+  ['alizarin crimson', [112, 22, 38], [214, 132, 162], true],
+  ['permanent rose', [200, 30, 90], [240, 150, 190], true],
+  ['quinacridone magenta', [150, 20, 80], [220, 130, 180], true],
+  ['dioxazine purple', [60, 20, 70], [160, 120, 180], true],
+  ['raw sienna', [180, 120, 50], [225, 190, 140], true],
+  ['burnt sienna', [140, 66, 36], [214, 160, 136], true],
+  ['raw umber', [90, 75, 55], [170, 160, 145], true],
+  ['burnt umber', [78, 52, 36], [166, 146, 130], true],
+];
+const lin = c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; };
+const unlin = c => 255 * (c <= .0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - .055);
+const ks = R => { R = Math.min(.999, Math.max(.001, R)); return (1 - R) ** 2 / (2 * R); };
+const KW = [0, 1, 2].map(i => ks(lin(ZORN[0][1][i])));
+function paint(name, mass, tint) {
+  if (!tint) return { name, mass, K: KW, S: [1, 1, 1] };
+  const K = [], S = [];
+  for (let i = 0; i < 3; i++) {
+    const a = ks(lin(mass[i])), b = ks(lin(tint[i]));
+    const Sp = a > b + 1e-6 ? Math.max(.02, (b - KW[i]) / (a - b)) : 1;
+    S.push(Sp); K.push(a * Sp);
+  }
+  return { name, mass, K, S };
+}
+function mixRGB(list) {
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    let K = 0, S = 0; for (const [p, w] of list) { K += w * p.K[i]; S += w * p.S[i]; }
+    const r = K / S, R = 1 + r - Math.sqrt(r * r + 2 * r); out.push(Math.max(0, Math.min(255, unlin(R))));
+  }
+  return out;
+}
+function lab([r, g, b]) {
+  const [R, G, B] = [r, g, b].map(lin);
+  const f = t => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116;
+  const X = f((.4124 * R + .3576 * G + .1805 * B) / .9505), Y = f(.2126 * R + .7152 * G + .0722 * B), Z = f((.0193 * R + .1192 * G + .9505 * B) / 1.089);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+const dE = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const PARTS = [.5, 1, 1.5, 2, 3, 4], WHITE = [0, 1, 2, 3, 4];
+function best(target, paints) {
+  const T = lab(target), white = paints[0], others = paints.slice(1);
+  const tryMix = list => {
+    const rgb = mixRGB(list), e = dE(lab(rgb), T);
+
+    return { e, score: e + .5 * (list.length - 1) + .08 * list.reduce((t, [, w]) => t + w, 0), rgb, list: list.map(x => x.slice()) };
+  };
+  const bestOf = colors => {
+    let b = null;
+    for (const w of WHITE) { const r = tryMix(w ? [[white, w], ...colors] : colors); if (!b || r.score < b.score) b = r; }
+    return b;
+  };
+  const found = [];
+  for (let i = 0; i < others.length; i++) {
+    for (const a of PARTS) found.push({ set: [i], c: [[others[i], a]], r: bestOf([[others[i], a]]) });
+    for (let j = i + 1; j < others.length; j++)
+      for (const a of PARTS) for (const b of PARTS) found.push({ set: [i, j], c: [[others[i], a], [others[j], b]], r: bestOf([[others[i], a], [others[j], b]]) });
+  }
+  found.sort((x, y) => x.r.score - y.r.score);
+  let top = found[0].r;
+  const seen = new Set();
+  for (const f of found) {
+    const key = f.set.join(','); if (seen.has(key)) continue; seen.add(key); if (seen.size > 40) break;
+    for (let k = 0; k < others.length; k++) {
+      if (f.set.includes(k)) continue;
+      for (const w of PARTS) { const r = bestOf([...f.c, [others[k], w]]); if (r.score < top.score) top = r; }
+    }
+  }
+
+  if (top && top.list.every(([, w]) => w % 2 === 0)) top.list.forEach(x => x[1] /= 2);
+  if (top && top.list.every(([, w]) => w === top.list[0][1])) top.list.forEach(x => x[1] = 1);
+  return top;
+}
+let extrasOn = {};
+try { extrasOn = JSON.parse(localStorage.getItem('vf-paints') || 'null') || {}; } catch (e) {}
+const extrasBox = $('#extras');
+EXTRAS.forEach(([n, , , def]) => {
+  if (!(n in extrasOn)) extrasOn[n] = def;
+  const l = document.createElement('label');
+  l.innerHTML = `<input type="checkbox" ${extrasOn[n] ? 'checked' : ''}> ${n}`;
+  l.querySelector('input').onchange = e => { extrasOn[n] = e.target.checked; try { localStorage.setItem('vf-paints', JSON.stringify(extrasOn)); } catch (x) {} if (lastS) mixNow(lastS); };
+  extrasBox.appendChild(l);
+});
+const ZP = ZORN.map(([n, m, t]) => paint(n, m, t));
+const amt = w => w === .5 ? '½' : w % 1 ? `${w - .5}½` : `${w}`;
+const near = e => e < 4 ? 'very close' : e < 8 ? 'close' : e < 14 ? 'near' : 'rough';
+function block(title, r, target) {
+  if (!r) return '';
+  const lum = c => .299 * c[0] + .587 * c[1] + .114 * c[2];
+  const list = r.list.slice().sort((a, b) => lum(b[0].mass) - lum(a[0].mass));
+  const c = r.rgb.map(x => x | 0);
+  return `<div class="mixbox"><div class="mixhead">${title}<span>${near(r.e)} · value ${Math.round(toV(lum(r.rgb)))}</span></div>
+    <div class="mixsw"><span class="c" style="background:rgb(${target.map(x => x | 0)})"></span>photo
+      <span class="c" style="background:rgb(${c})"></span>this mix</div>
+    <ul class="parts">${list.map(([p, w]) => `<li><b>${amt(w)}</b><span class="dot" style="background:rgb(${p.mass})"></span>${p.name}</li>`).join('')}</ul></div>`;
+}
+let lastS = null, mixTimer = null;
+function mixLater(s) { lastS = s; clearTimeout(mixTimer); mixTimer = setTimeout(() => mixNow(s), 120); }
+function mixNow(s) {
+  const t = [s.r, s.g, s.b];
+  const z = best(t, ZP);
+  const ex = [...ZP, ...EXTRAS.filter(([n]) => extrasOn[n]).map(([n, m, tt]) => paint(n, m, tt))];
+  const e = ex.length > ZP.length ? best(t, ex) : null;
+
+  const top = e || z, zornOnly = e && !e.list.every(([p]) => ZORN.some(([n]) => n === p.name));
+  $('#mixes').innerHTML = block('Closest mix', top, t) + (zornOnly ? block('Zorn palette only', z, t) : '');
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function renderPins() {
+  const box = $('#pins');
+  if (!pins.length) { box.innerHTML = '<div class="none">No pins yet. Click the photo to add one.</div>'; marks(live ? toV(live.s.L) : null); return; }
+  box.innerHTML = '';
+  pins.forEach((p, i) => {
+    const row = document.createElement('div'); row.className = 'pin';
+    row.innerHTML = `<span class="n">${i + 1}</span><span class="c" style="background:rgb(${p.s.r|0},${p.s.g|0},${p.s.b|0})"></span><span class="c" style="background:${gray(p.s.L)}"></span><input placeholder="name it" value="${esc(p.name)}"><span class="v">${Math.round(toV(p.s.L))}</span><button title="Remove">×</button>`;
+    row.querySelector('input').oninput = e => { p.name = e.target.value; marks(live ? toV(live.s.L) : null); };
+    row.querySelector('button').onclick = () => { pins.splice(i, 1); renderPins(); draw(); };
+    box.appendChild(row);
+  });
+  marks(live ? toV(live.s.L) : null);
+}
+function pos(e) { const b = view.getBoundingClientRect(); return { x: (e.clientX - b.left) / scaleK, y: (e.clientY - b.top) / scaleK }; }
+function hit(p) { const r = Math.max(ring, 12) / scaleK; return pins.findIndex(q => Math.hypot(q.x - p.x, q.y - p.y) <= r); }
+
+view.addEventListener('pointerdown', e => {
+  if (!img) return; const p = pos(e);
+  view.setPointerCapture(e.pointerId);
+  if (onRuler(p)) { rulerDrag = { dx: p.x - ruler.x, dy: p.y - ruler.y }; view.style.cursor = 'grabbing'; draw(); return; }
+  const i = hit(p);
+  if (i >= 0) dragging = pins[i];
+  else { const s = sample(p.x, p.y); dragging = { ...p, s, name: '' }; pins.push(dragging); renderPins(); }
+  show(dragging.s); draw();
+});
+view.addEventListener('pointermove', e => {
+  if (!img) return; const p = pos(e);
+  p.x = Math.max(0, Math.min(W, p.x)); p.y = Math.max(0, Math.min(H, p.y));
+  if (rulerDrag) { ruler.x = p.x - rulerDrag.dx; ruler.y = p.y - rulerDrag.dy; live = null; draw(); return; }
+  if (dragging) { dragging.x = p.x; dragging.y = p.y; dragging.s = sample(p.x, p.y); show(dragging.s); renderPins(); }
+  else { live = { ...p, s: sample(p.x, p.y) }; show(live.s); view.style.cursor = onRuler(p) || hit(p) >= 0 ? 'grab' : 'crosshair'; }
+  draw();
+});
+view.addEventListener('pointerup', () => { dragging = null; rulerDrag = null; draw(); });
+view.addEventListener('pointerleave', () => { if (!dragging) { live = null; draw(); marks(null); } });
+
+$('#file').onchange = e => load(e.target.files[0]);
+['dragenter', 'dragover'].forEach(t => stage.addEventListener(t, e => { e.preventDefault(); stage.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(t => stage.addEventListener(t, e => { e.preventDefault(); stage.classList.remove('drag'); }));
+stage.addEventListener('drop', e => load(e.dataTransfer.files[0]));
+window.addEventListener('paste', e => { const f = [...e.clipboardData.items].find(i => i.type.startsWith('image/')); if (f) load(f.getAsFile()); });
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x === b)); mode = b.dataset.view; draw();
+});
+$('#steps').onchange = e => { nSteps = +e.target.value; if (mode !== 'steps') { mode = 'steps'; document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x.dataset.view === 'steps')); } draw(); };
+$('#ring').oninput = e => { ring = +e.target.value; pins.forEach(p => p.s = sample(p.x, p.y)); renderPins(); draw(); };
+$('#rulerBtn').onclick = () => {
+  if (!img) return;
+  if (ruler) ruler = null;
+  else { const u = 1 / scaleK; ruler = { v: false, x: Math.max(0, (W - RC * 11 * u) / 2), y: H * .4 }; }
+  $('#rulerBtn').classList.toggle('on', !!ruler); $('#turn').style.display = ruler ? '' : 'none'; draw();
+};
+$('#turn').onclick = () => {
+  if (!ruler) return; ruler.v = !ruler.v; const bx = rulerBox();
+  ruler.x = Math.max(0, Math.min(W - bx.w, ruler.x)); ruler.y = Math.max(0, Math.min(H - bx.h, ruler.y)); draw();
+};
+$('#clear').onclick = () => { pins = []; renderPins(); draw(); };
+$('#save').onclick = () => {
+  if (!img) return;
+  const a = document.createElement('a'); a.download = 'value-map.png'; a.href = view.toDataURL('image/png'); a.click();
+};
+window.addEventListener('resize', () => { fit(); pins.forEach(p => p.s = sample(p.x, p.y)); draw(); renderPins(); });
+</script>
+</body>
+</html>
